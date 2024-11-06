@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tic-Tac-Toe Game</title>
+    <style>
+        body {
+            background-color: #2e2e2e;
+            font-family: 'Courier New', Courier, monospace;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            flex-direction: column;
+            animation: fadeInPage 1s ease-in-out;
+        }
+
+        h1 {
+            color: #ffffff;
+            animation: fadeInText 1.5s ease-out;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 10px;
+            margin-top: 30px;
+            animation: fadeInBoard 1s ease-out;
+        }
+
+        .cell {
+            width: 100px;
+            height: 100px;
+            background-color: #404040;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 40px;
+            font-weight: bold;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+
+        .cell:hover {
+            background-color: #575757;
+            transform: scale(1.1);
+        }
+
+        .cell.taken {
+            pointer-events: none;
+        }
+
+        .message {
+            font-size: 24px;
+            margin-top: 30px;
+            color: white;
+        }
+
+        .reset-button {
+            background-color: #555;
+            color: #fff;
+            font-size: 18px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+
+        .reset-button:hover {
+            background-color: #777;
+        }
+
+.bot-message {
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center; 
+    opacity: 0;
+    animation: fadeInMessage 0.5s forwards;
+    padding: 10px;
+
+    border-radius: 8px;
+      width: 80%;
+    max-width: 600px;
+    color: #fff;
+    text-align: center; 
+}
+
+
+.bot-message img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-left: 10px;
+    transition: transform 0.3s;
+}
+
+
+.bot-message p {
+    margin: 0;
+    font-size: 18px;
+    color: #fff;
+    animation: fadeInText 1s ease-out;
+    text-align: center;
+}
+
+        @keyframes fadeInPage {
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        @keyframes fadeInBoard {
+            0% { opacity: 0; transform: translateY(-50px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInText {
+            0% { opacity: 0; transform: translateX(50px); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes fadeInMessage {
+            0% { opacity: 0; transform: translateY(20px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes botJump {
+            0% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
+        }
+
+        .bot-message img:hover {
+            transform: scale(1.2) rotate(10deg);
+            animation: botJump 1s infinite;
+        }
+
+        footer {
+     position: fixed;
+    color: #fff;
+    text-align: center;
+    padding: 20px 0;
+    font-family: 'Arial', sans-serif;
+    position: relative;
+    bottom: 0;
+    width: 100%;
+}
+
+#rights {
+    margin: 0;
+    font-size: 14px;
+}
+
+#rights span {
+    font-weight: bold;
+    color: #ff6347;
+    text-transform: uppercase;
+}
+
+    </style>
+</head>
+<body>
+
+    <h1>Welcome to Tic-Tac-Toe</h1>
+    <div class="message" id="message"></div>
+
+    <div class="game-board" id="gameBoard">
+        <div class="cell" data-index="0"></div>
+        <div class="cell" data-index="1"></div>
+        <div class="cell" data-index="2"></div>
+        <div class="cell" data-index="3"></div>
+        <div class="cell" data-index="4"></div>
+        <div class="cell" data-index="5"></div>
+        <div class="cell" data-index="6"></div>
+        <div class="cell" data-index="7"></div>
+        <div class="cell" data-index="8"></div>
+    </div>
+
+    <button class="reset-button" id="resetButton">Reset Game</button>
+
+    <div class="bot-message" id="botMessage"></div>
+    <footer>
+        <p id="rights">© 2024 <span>alakawi</span> - All Rights Reserved</p>
+    </footer>
+    <script>
+        const playerName = sessionStorage.getItem("username") || "Player";
+        const botName = "Bot";
+
+        const board = document.getElementById('gameBoard');
+        const cells = document.querySelectorAll('.cell');
+        const message = document.getElementById('message');
+        const resetButton = document.getElementById('resetButton');
+        const botMessage = document.getElementById('botMessage');
+
+        let currentPlayer = 'X'; 
+        let gameBoard = ['', '', '', '', '', '', '', '', ''];
+        let gameActive = false;
+
+
+        const botMessages = [
+    "هااااااا، شو هاللعب؟ بتخسر بعد شوي!",
+    "والله ما شاء الله عليك، شو هالحركات؟",
+    "تعال فكر شوي، بتهزر معي؟",
+    "هاهاها، معقول هذا مستوى لعبك؟",
+    "و الله انك ضايع! البوت بس يمشي معك باللعبة.",
+    "شوف، خلي عنك الهوا، خسران خسران!",
+    "يلا بينا نخلصها، ما ضل وقت للعب.",
+    "شو هاي؟ مبين عليك لسه مبتدئ!",
+    "يلا، خلصها، خلي البوت يخلص عليك.",
+    "محتاج مساعدة؟ ولا خلاص، راح تخسر عن قريب؟",
+    "أنا البوت وأنا فائز، شو رأيك؟",
+    "الحركة الجاية بتكون الأخيرة إلك، خلي بالك!",
+    "أوعى تخلي العكاوي يشوف لعبك، بتفضح حالك!",
+    "العكاوي لو شافك هون، رح يضحك عليك!",
+    "خلي العكاوي يشوف لعبك؟ والله ما في أمل تربح!",
+    "يلا بسرعة، العكاوي رح ييجي ويشوفك خسران!",
+    "إذا العكاوي شافك عم تخسر، ما رح تسكت عليك!",
+    "أنت بتلعب، بس العكاوي بيضحك، شو رأيك؟",
+    "لعبة زي هيك ما بتستاهل العكاوي يشوفها!",
+    "يا زلمة، لو العكاوي شافك بهالطريقة، بتلعب اخخخ بس!"
+];
+
+
+
+        const startGame = () => {
+            gameActive = true;
+            currentPlayer = 'X'; 
+            message.textContent = `${playerName}'s turn (X)`;
+        };
+
+   
+        const checkWinner = () => {
+            const winPatterns = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8],
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], 
+                [0, 4, 8], [2, 4, 6]             
+            ];
+
+            for (let pattern of winPatterns) {
+                const [a, b, c] = pattern;
+                if (gameBoard[a] && gameBoard[a] === gameBoard[b] && gameBoard[a] === gameBoard[c]) {
+                    setTimeout(() => {
+                        message.textContent = `${currentPlayer === 'X' ? playerName : botName} wins!`;
+                        document.querySelectorAll('.cell').forEach(cell => {
+                            cell.classList.add('taken');
+                        });
+                    }, 100);
+                    highlightWinningCells(pattern);
+                    return true;
+                }
+            }
+
+            if (!gameBoard.includes('')) {
+                setTimeout(() => message.textContent = "It's a tie!");
+                return true;
+            }
+            return false;
+        };
+
+
+        const highlightWinningCells = (pattern) => {
+            pattern.forEach(index => {
+                cells[index].classList.add('winner');
+            });
+        };
+
+    
+        const handleClick = (e) => {
+            if (!gameActive) return;
+
+            const index = e.target.getAttribute('data-index');
+            if (gameBoard[index] !== '') return;
+
+            gameBoard[index] = currentPlayer;
+            e.target.textContent = currentPlayer;
+            e.target.classList.add('taken');
+            if (checkWinner()) return;
+            currentPlayer = 'O'; 
+            message.textContent = `${botName}'s turn (O)`;
+            botPlay();
+        };
+
+
+        const botSays = (text) => {
+            botMessage.innerHTML = `<p>${text}</p><img src="Bot.png" alt="Bot" />`;
+            botMessage.style.opacity = 1;
+            botMessage.style.animation = 'fadeInMessage 0.5s forwards';
+        };
+
+   
+        const botPlay = () => {
+            const availableCells = gameBoard.map((val, index) => val === '' ? index : null).filter(val => val !== null);
+            const randomIndex = availableCells[Math.floor(Math.random() * availableCells.length)];
+            gameBoard[randomIndex] = 'O';
+            cells[randomIndex].textContent = 'O';
+            cells[randomIndex].classList.add('taken');
+            checkWinner();
+            currentPlayer = 'X';
+            message.textContent = `${playerName}'s turn (X)`;
+            botSays(botMessages[Math.floor(Math.random() * botMessages.length)]);
+        };
+
+ 
+        const resetGame = () => {
+            gameBoard = ['', '', '', '', '', '', '', '', ''];
+            gameActive = false;
+            cells.forEach(cell => {
+                cell.textContent = '';
+                cell.classList.remove('taken', 'winner');
+            });
+            botSays('Game reset. Let\'s play again!');
+            startGame();
+        };
+
+  
+        cells.forEach(cell => cell.addEventListener('click', handleClick));
+        resetButton.addEventListener('click', resetGame);
+
+        startGame();
+    </script>
+</body>
+</html>
